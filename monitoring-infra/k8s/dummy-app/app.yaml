@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dummy-app
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dummy-app
+  template:
+    metadata:
+      labels:
+        app: dummy-app
+    spec:
+      containers:
+      - name: http-echo
+        image: hashicorp/http-echo
+        args:
+        - "-text=Hello from Dummy App via Ingress!"
+        ports:
+        - containerPort: 5678
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dummy-app-service
+  namespace: default
+spec:
+  selector:
+    app: dummy-app
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 5678

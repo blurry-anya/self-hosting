@@ -537,7 +537,7 @@ microk8s status --wait-ready
 ### 5️⃣ Enable useful add-ons
 
 ```bash
-microk8s enable dns dashboard storage
+microk8s enable dns dashboard storage ingress
 ```
 
 * **dns**: needed for internal service discovery
