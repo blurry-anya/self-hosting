@@ -1,20 +1,19 @@
-# dummy-app-ingress.yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: dummy-app-ingress
-  namespace: default
+  name: argocd-server-ingress
+  namespace: argocd
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
 spec:
   rules:
-  - host: dummy.blurryfaced.xyz
+  - host: argocd.local
     http:
       paths:
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: dummy-app-service
+            name: argocd-server
             port:
               number: 80

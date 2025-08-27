@@ -1,7 +1,3 @@
-Nice 🚀 — that’s a great next step. Let’s walk through it clearly:
-
----
-
 ## **1. Which distribution to use for Kubernetes VMs?**
 
 For a **home lab Kubernetes node**, you want a lightweight, stable Linux distro with good community support. Here are the best options:
@@ -537,7 +533,7 @@ microk8s status --wait-ready
 ### 5️⃣ Enable useful add-ons
 
 ```bash
-microk8s enable dns dashboard storage ingress
+kube
 ```
 
 * **dns**: needed for internal service discovery
