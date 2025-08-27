@@ -84,8 +84,9 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: cert-manager
+  annotations:
+    argocd.argoproj.io/sync-wave: "0" 
 rules:
-  # cainjector permissions
   - apiGroups: [""]
     resources: ["secrets"]
     verbs: ["get", "list", "watch", "update", "patch"]
@@ -95,7 +96,6 @@ rules:
   - apiGroups: ["cert-manager.io"]
     resources: ["certificates", "issuers", "clusterissuers"]
     verbs: ["get", "list", "watch", "update", "patch"]
-  # leader election permissions
   - apiGroups: ["coordination.k8s.io"]
     resources: ["leases"]
     verbs: ["get", "list", "watch", "create", "update", "patch"]
@@ -107,6 +107,8 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: cert-manager
+  annotations:
+    argocd.argoproj.io/sync-wave: "0" 
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
