@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: 'https://github.com/blurry-anya/self-hosting'
     targetRevision: main
-    path: k3s-infra/02-cert-manager
+    path: k3s-infra/03-cert-manager
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: cert-manager
