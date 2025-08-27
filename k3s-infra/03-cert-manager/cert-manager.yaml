@@ -77,11 +77,15 @@ spec:
         args:
           - --v=2
 ---
+# ------------------------
+# ClusterRole for cert-manager
+# ------------------------
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: cert-manager-cainjector
+  name: cert-manager
 rules:
+  # cainjector permissions
   - apiGroups: [""]
     resources: ["secrets"]
     verbs: ["get", "list", "watch", "update", "patch"]
@@ -91,15 +95,22 @@ rules:
   - apiGroups: ["cert-manager.io"]
     resources: ["certificates", "issuers", "clusterissuers"]
     verbs: ["get", "list", "watch", "update", "patch"]
----
+  # leader election permissions
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
+    verbs: ["get", "list", "watch", "create", "update", "patch"]
+
+# ------------------------
+# ClusterRoleBinding
+# ------------------------
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: cert-manager-cainjector
+  name: cert-manager
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: cert-manager-cainjector
+  name: cert-manager
 subjects:
   - kind: ServiceAccount
     name: cert-manager
