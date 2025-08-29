@@ -4,7 +4,6 @@ metadata:
   name: argocd-ingress
   annotations:
     ingress.kubernetes.io/proxy-body-size: 100M
-    ingress.kubernetes.io/app-root: "/"
     cert-manager.io/cluster-issuer: selfsigned-issuer
     nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
 spec:
@@ -25,4 +24,3 @@ spec:
             name: argocd-server
             port:
               name: http
-              # number: 80
