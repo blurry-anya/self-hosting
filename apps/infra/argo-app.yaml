@@ -7,7 +7,7 @@ spec:
   project: infrastructure
   source:
     repoURL: 'https://github.com/blurry-anya/self-hosting'
-    targetRevision: HEAD
+    targetRevision: main
     path: kustomizations/argocd
   destination:
     server: 'https://kubernetes.default.svc'

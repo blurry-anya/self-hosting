@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: 'https://github.com/blurry-anya/self-hosting'
     path: apps/infra
-    targetRevision: HEAD
+    targetRevision: main
   destination:
     server: https://kubernetes.default.svc
     namespace: infrastructure
