@@ -1,0 +1,1 @@
+apps get created manually rn (kubectl apply -f), need to see how to manage them properly (app-of-apps)

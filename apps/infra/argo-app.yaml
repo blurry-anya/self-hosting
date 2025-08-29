@@ -1,18 +1,19 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: cert-manager-app
+  name: argocd-self
   namespace: argocd
 spec:
-  project: default
+  project: infrastructure
   source:
     repoURL: 'https://github.com/blurry-anya/self-hosting'
-    targetRevision: main
-    path: k3s-infra/03-cert-manager
+    targetRevision: HEAD
+    path: kustomizations/argocd
   destination:
     server: 'https://kubernetes.default.svc'
-    namespace: cert-manager
+    namespace: argocd
   syncPolicy:
     automated:
-      prune: true
       selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
