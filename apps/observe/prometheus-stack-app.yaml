@@ -4,7 +4,7 @@ metadata:
   name: prometheus-stack-app
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "0"
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   project: observability
   destination:
@@ -17,9 +17,9 @@ spec:
     helm:
       values: |
         crds:
-          enabled: true
+          enabled: false
           upgradeJob:
-            enabled: true
+            enabled: false
 
         grafana:
           enabled: true
