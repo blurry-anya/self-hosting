@@ -17,9 +17,9 @@ spec:
     helm:
       values: |
         crds:
-          enabled: false
+          enabled: true
           upgradeJob:
-            enabled: false
+            enabled: true
 
         grafana:
           enabled: true

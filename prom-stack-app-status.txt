@@ -1,0 +1,1398 @@
+Name:         prometheus-stack-app
+Namespace:    argocd
+Labels:       <none>
+Annotations:  argocd.argoproj.io/sync-wave: 0
+              argocd.argoproj.io/tracking-id: observability-aoa:argoproj.io/Application:argocd/prometheus-stack-app
+API Version:  argoproj.io/v1alpha1
+Kind:         Application
+Metadata:
+  Creation Timestamp:  2025-08-29T16:41:22Z
+  Generation:          63
+  Resource Version:    11176
+  UID:                 204ccac3-3104-44dc-9587-70dadc92b579
+Spec:
+  Destination:
+    Namespace:  monitoring
+    Server:     https://kubernetes.default.svc
+  Project:      observability
+  Source:
+    Chart:  kube-prometheus-stack
+    Helm:
+      Values:  crds:
+  enabled: false
+  upgradeJob:
+    enabled: false
+
+grafana:
+  enabled: true
+  image:
+    tag: "11.6.1-security-01"
+  grafana.ini:
+    server:
+      root_url: https://grafana.local
+  persistence:
+    enabled: true
+    type: pvc
+    storageClassName: local-path
+    accessModes:
+      - ReadWriteOnce
+    size: 5Gi
+    skipUpgrade: true
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      kubernetes.io/ingress.class: nginx
+    hosts:
+      - grafana.local
+    path: /
+    pathType: Prefix
+    tls:
+      - hosts:
+          - grafana.local
+        secretName: grafana-tls
+
+prometheus:
+  enabled: true
+
+  prometheusSpec:
+    scrapeInterval: 1m
+    enableAdminAPI: true
+    enableRemoteWriteReceiver: true
+    retention: 30d
+    resources:
+      requests:
+        memory: 600Mi
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: local-path
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 10Gi
+
+    additionalScrapeConfigs: |
+      - job_name: 'argocd'
+        scrape_interval: 1m
+        metrics_path: /metrics
+        scheme: http
+        static_configs:
+          - targets: ['argocd-metrics.argocd.svc:8083']
+
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      kubernetes.io/ingress.class: nginx
+    hosts:
+      - prometheus.local
+    path: /
+    pathType: Prefix
+    tls:
+      - hosts:
+          - prometheus.local
+        secretName: prometheus-tls
+
+alertmanager:
+  enabled: true
+  alertmanagerSpec:
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: local-path
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 1Gi
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      kubernetes.io/ingress.class: nginx
+    hosts:
+      - alertmanager.local
+    path: /
+    pathType: Prefix
+    tls:
+      - hosts:
+          - alertmanager.local
+        secretName: alertmanager-tls
+
+prometheusOperator:
+  enabled: true
+  tls:
+    enabled: false
+  admissionWebhooks:
+    enabled: false
+    patch:
+      enabled: false
+    certManager:
+      enabled: false
+    failurePolicy: Ignore
+
+nodeExporter:
+  enabled: false
+
+kubeControllerManager:
+  enabled: false
+kubeProxy:
+  enabled: true
+  service:
+    selector:
+      component: kube-proxy
+  serviceMonitor:
+    enabled: true
+kubeScheduler:
+  enabled: false
+defaultRules:
+  create: true
+
+    Repo URL:         https://prometheus-community.github.io/helm-charts
+    Target Revision:  77.1.0
+  Sync Policy:
+    Automated:
+      Prune:      true
+      Self Heal:  true
+    Sync Options:
+      CreateNamespace=true
+      ServerSideApply=true
+      ApplyOutOfSyncOnly=true
+      Replace=true
+      Prune=true
+Status:
+  Conditions:
+    Last Transition Time:  2025-08-29T17:26:29Z
+    Message:               Failed sync attempt to 77.1.0: one or more synchronization tasks are not valid
+    Type:                  SyncError
+  Controller Namespace:    argocd
+  Health:
+    Last Transition Time:  2025-08-29T16:41:25Z
+    Status:                Missing
+  Operation State:
+    Finished At:  2025-08-29T17:26:29Z
+    Message:      one or more synchronization tasks are not valid
+    Operation:
+      Initiated By:
+        Username:  admin
+      Retry:
+      Sync:
+        Revision:  77.1.0
+        Sync Options:
+          CreateNamespace=true
+          ServerSideApply=true
+          ApplyOutOfSyncOnly=true
+          Replace=true
+          Prune=true
+        Sync Strategy:
+          Hook:
+    Phase:       Failed
+    Started At:  2025-08-29T17:26:28Z
+    Sync Result:
+      Resources:
+        Group:       monitoring.coreos.com
+        Kind:        PrometheusRule
+        Message:     The Kubernetes API could not find monitoring.coreos.com/PrometheusRule for requested resource monitoring/prometheus-stack-app-kube-kubernetes-resources. Make sure the "PrometheusRule" CRD is installed on the destination cluster.
+        Name:        prometheus-stack-app-kube-kubernetes-resources
+        Namespace:   monitoring
+        Status:      SyncFailed
+        Sync Phase:  Sync
+        Version:     v1
+        Group:       monitoring.coreos.com
+        Kind:        PrometheusRule
+        Message:     The Kubernetes API could not find monitoring.coreos.com/PrometheusRule for requested resource monitoring/prometheus-stack-app-kube-kubernetes-storage. Make sure the "PrometheusRule" CRD is installed on the destination cluster.
+        Name:        prometheus-stack-app-kube-kubernetes-storage
+        Namespace:   monitoring
+        Status:      SyncFailed
+        Sync Phase:  Sync
+        Version:     v1
+        Group:       monitoring.coreos.com
+        Kind:        Prometheus
+        Message:     The Kubernetes API could not find monitoring.coreos.com/Prometheus for requested resource monitoring/prometheus-stack-app-kube-prometheus. Make sure the "Prometheus" CRD is installed on the destination cluster.
+        Name:        prometheus-stack-app-kube-prometheus
+        Namespace:   monitoring
+        Status:      SyncFailed
+        Sync Phase:  Sync
+        Version:     v1
+        Group:       monitoring.coreos.com
+        Kind:        PrometheusRule
+        Message:     The Kubernetes API could not find monitoring.coreos.com/PrometheusRule for requested resource monitoring/prometheus-stack-app-kube-kube-apiserver-histogram.rules. Make sure the "PrometheusRule" CRD is installed on the destination cluster.
+        Name:        prometheus-stack-app-kube-kube-apiserver-histogram.rules
+        Namespace:   monitoring
+        Status:      SyncFailed
+        Sync Phase:  Sync
+        Version:     v1
+        Group:       monitoring.coreos.com
+        Kind:        ServiceMonitor
+        Message:     The Kubernetes API could not find monitoring.coreos.com/ServiceMonitor for requested resource monitoring/prometheus-stack-app-kube-operator. Make sure the "ServiceMonitor" CRD is installed on the destination cluster.
+        Name:        prometheus-stack-app-kube-operator
+        Namespace:   monitoring
+        Status:      SyncFailed
+        Sync Phase:  Sync
+        Version:     v1
+        Group:       monitoring.coreos.com
+        Kind:        PrometheusRule
+        Message:     The Kubernetes API could not find monitoring.coreos.com/PrometheusRule for requested resource monitoring/prometheus-stack-app-kube-prometheus-operator. Make sure the "PrometheusRule" CRD is installed on the destination cluster.
+        Name:        prometheus-stack-app-kube-prometheus-operator
+        Namespace:   monitoring
+        Status:      SyncFailed
+        Sync Phase:  Sync
+        Version:     v1
+        Group:       monitoring.coreos.com
+        Kind:        PrometheusRule
+        Message:     The Kubernetes API could not find monitoring.coreos.com/PrometheusRule for requested resource monitoring/prometheus-stack-app-kube-node-exporter.rules. Make sure the "PrometheusRule" CRD is installed on the destination cluster.
+        Name:        prometheus-stack-app-kube-node-exporter.rules
+        Namespace:   monitoring
+        Status:      SyncFailed
+        Sync Phase:  Sync
+        Version:     v1
+        Group:       monitoring.coreos.com
+        Kind:        PrometheusRule
+        Message:     The Kubernetes API could not find monitoring.coreos.com/PrometheusRule for requested resource monitoring/prometheus-stack-app-kube-node.rules. Make sure the "PrometheusRule" CRD is installed on the destination cluster.
+        Name:        prometheus-stack-app-kube-node.rules
+        Namespace:   monitoring
+        Status:      SyncFailed
+        Sync Phase:  Sync
+        Version:     v1
+        Group:       monitoring.coreos.com
+        Kind:        PrometheusRule
+        Message:     The Kubernetes API could not find monitoring.coreos.com/PrometheusRule for requested resource monitoring/prometheus-stack-app-kube-etcd. Make sure the "PrometheusRule" CRD is installed on the destination cluster.
+        Name:        prometheus-stack-app-kube-etcd
+        Namespace:   monitoring
+        Status:      SyncFailed
+        Sync Phase:  Sync
+        Version:     v1
+        Group:       monitoring.coreos.com
+        Kind:        PrometheusRule
+        Message:     The Kubernetes API could not find monitoring.coreos.com/PrometheusRule for requested resource monitoring/prometheus-stack-app-kube-kubernetes-system-kubelet. Make sure the "PrometheusRule" CRD is installed on the destination cluster.
+        Name:        prometheus-stack-app-kube-kubernetes-system-kubelet
+        Namespace:   monitoring
+        Status:      SyncFailed
+        Sync Phase:  Sync
+        Version:     v1
+        Group:       monitoring.coreos.com
+        Kind:        PrometheusRule
+        Message:     The Kubernetes API could not find monitoring.coreos.com/PrometheusRule for requested resource monitoring/prometheus-stack-app-kube-k8s.rules.container-memory-swap. Make sure the "PrometheusRule" CRD is installed on the destination cluster.
+        Name:        prometheus-stack-app-kube-k8s.rules.container-memory-swap
+        Namespace:   monitoring
+        Status:      SyncFailed
+        Sync Phase:  Sync
+        Version:     v1
+        Group:       monitoring.coreos.com
+        Kind:        PrometheusRule
+        Message:     The Kubernetes API could not find monitoring.coreos.com/PrometheusRule for requested resource monitoring/prometheus-stack-app-kube-kube-apiserver-slos. Make sure the "PrometheusRule" CRD is installed on the destination cluster.
+        Name:        prometheus-stack-app-kube-kube-apiserver-slos
+        Namespace:   monitoring
+        Status:      SyncFailed
+        Sync Phase:  Sync
+        Version:     v1
+        Group:       monitoring.coreos.com
+        Kind:        ServiceMonitor
+        Message:     The Kubernetes API could not find monitoring.coreos.com/ServiceMonitor for requested resource monitoring/prometheus-stack-app-kube-coredns. Make sure the "ServiceMonitor" CRD is installed on the destination cluster.
+        Name:        prometheus-stack-app-kube-coredns
+        Namespace:   monitoring
+        Status:      SyncFailed
+        Sync Phase:  Sync
+        Version:     v1
+        Group:       monitoring.coreos.com
+        Kind:        ServiceMonitor
+        Message:     The Kubernetes API could not find monitoring.coreos.com/ServiceMonitor for requested resource monitoring/prometheus-stack-app-kube-prometheus. Make sure the "ServiceMonitor" CRD is installed on the destination cluster.
+        Name:        prometheus-stack-app-kube-prometheus
+        Namespace:   monitoring
+        Status:      SyncFailed
+        Sync Phase:  Sync
+        Version:     v1
+        Group:       monitoring.coreos.com
+        Kind:        PrometheusRule
+        Message:     The Kubernetes API could not find monitoring.coreos.com/PrometheusRule for requested resource monitoring/prometheus-stack-app-kube-config-reloaders. Make sure the "PrometheusRule" CRD is installed on the destination cluster.
+        Name:        prometheus-stack-app-kube-config-reloaders
+        Namespace:   monitoring
+        Status:      SyncFailed
+        Sync Phase:  Sync
+        Version:     v1
+        Group:       monitoring.coreos.com
+        Kind:        PrometheusRule
+        Message:     The Kubernetes API could not find monitoring.coreos.com/PrometheusRule for requested resource monitoring/prometheus-stack-app-kube-alertmanager.rules. Make sure the "PrometheusRule" CRD is installed on the destination cluster.
+        Name:        prometheus-stack-app-kube-alertmanager.rules
+        Namespace:   monitoring
+        Status:      SyncFailed
+        Sync Phase:  Sync
+        Version:     v1
+        Group:       monitoring.coreos.com
+        Kind:        PrometheusRule
+        Message:     The Kubernetes API could not find monitoring.coreos.com/PrometheusRule for requested resource monitoring/prometheus-stack-app-kube-k8s.rules.container-memory-rss. Make sure the "PrometheusRule" CRD is installed on the destination cluster.
+        Name:        prometheus-stack-app-kube-k8s.rules.container-memory-rss
+        Namespace:   monitoring
+        Status:      SyncFailed
+        Sync Phase:  Sync
+        Version:     v1
+        Group:       monitoring.coreos.com
+        Kind:        PrometheusRule
+        Message:     The Kubernetes API could not find monitoring.coreos.com/PrometheusRule for requested resource monitoring/prometheus-stack-app-kube-kube-prometheus-general.rules. Make sure the "PrometheusRule" CRD is installed on the destination cluster.
+        Name:        prometheus-stack-app-kube-kube-prometheus-general.rules
+        Namespace:   monitoring
+        Status:      SyncFailed
+        Sync Phase:  Sync
+        Version:     v1
+        Group:       monitoring.coreos.com
+        Kind:        PrometheusRule
+        Message:     The Kubernetes API could not find monitoring.coreos.com/PrometheusRule for requested resource monitoring/prometheus-stack-app-kube-general.rules. Make sure the "PrometheusRule" CRD is installed on the destination cluster.
+        Name:        prometheus-stack-app-kube-general.rules
+        Namespace:   monitoring
+        Status:      SyncFailed
+        Sync Phase:  Sync
+        Version:     v1
+        Group:       monitoring.coreos.com
+        Kind:        ServiceMonitor
+        Message:     The Kubernetes API could not find monitoring.coreos.com/ServiceMonitor for requested resource monitoring/prometheus-stack-app-kube-state-metrics. Make sure the "ServiceMonitor" CRD is installed on the destination cluster.
+        Name:        prometheus-stack-app-kube-state-metrics
+        Namespace:   monitoring
+        Status:      SyncFailed
+        Sync Phase:  Sync
+        Version:     v1
+        Group:       monitoring.coreos.com
+        Kind:        PrometheusRule
+        Message:     The Kubernetes API could not find monitoring.coreos.com/PrometheusRule for requested resource monitoring/prometheus-stack-app-kube-kube-state-metrics. Make sure the "PrometheusRule" CRD is installed on the destination cluster.
+        Name:        prometheus-stack-app-kube-kube-state-metrics
+        Namespace:   monitoring
+        Status:      SyncFailed
+        Sync Phase:  Sync
+        Version:     v1
+        Group:       monitoring.coreos.com
+        Kind:        ServiceMonitor
+        Message:     The Kubernetes API could not find monitoring.coreos.com/ServiceMonitor for requested resource monitoring/prometheus-stack-app-kube-kube-proxy. Make sure the "ServiceMonitor" CRD is installed on the destination cluster.
+        Name:        prometheus-stack-app-kube-kube-proxy
+        Namespace:   monitoring
+        Status:      SyncFailed
+        Sync Phase:  Sync
+        Version:     v1
+        Group:       monitoring.coreos.com
+        Kind:        PrometheusRule
+        Message:     The Kubernetes API could not find monitoring.coreos.com/PrometheusRule for requested resource monitoring/prometheus-stack-app-kube-kubernetes-system-kube-proxy. Make sure the "PrometheusRule" CRD is installed on the destination cluster.
+        Name:        prometheus-stack-app-kube-kubernetes-system-kube-proxy
+        Namespace:   monitoring
+        Status:      SyncFailed
+        Sync Phase:  Sync
+        Version:     v1
+        Group:       monitoring.coreos.com
+        Kind:        ServiceMonitor
+        Message:     The Kubernetes API could not find monitoring.coreos.com/ServiceMonitor for requested resource monitoring/prometheus-stack-app-kube-kube-etcd. Make sure the "ServiceMonitor" CRD is installed on the destination cluster.
+        Name:        prometheus-stack-app-kube-kube-etcd
+        Namespace:   monitoring
+        Status:      SyncFailed
+        Sync Phase:  Sync
+        Version:     v1
+        Group:       monitoring.coreos.com
+        Kind:        PrometheusRule
+        Message:     The Kubernetes API could not find monitoring.coreos.com/PrometheusRule for requested resource monitoring/prometheus-stack-app-kube-k8s.rules.container-memory-working-se. Make sure the "PrometheusRule" CRD is installed on the destination cluster.
+        Name:        prometheus-stack-app-kube-k8s.rules.container-memory-working-se
+        Namespace:   monitoring
+        Status:      SyncFailed
+        Sync Phase:  Sync
+        Version:     v1
+        Group:       monitoring.coreos.com
+        Kind:        ServiceMonitor
+        Message:     The Kubernetes API could not find monitoring.coreos.com/ServiceMonitor for requested resource monitoring/prometheus-stack-app-kube-apiserver. Make sure the "ServiceMonitor" CRD is installed on the destination cluster.
+        Name:        prometheus-stack-app-kube-apiserver
+        Namespace:   monitoring
+        Status:      SyncFailed
+        Sync Phase:  Sync
+        Version:     v1
+        Group:       monitoring.coreos.com
+        Kind:        PrometheusRule
+        Message:     The Kubernetes API could not find monitoring.coreos.com/PrometheusRule for requested resource monitoring/prometheus-stack-app-kube-kube-apiserver-burnrate.rules. Make sure the "PrometheusRule" CRD is installed on the destination cluster.
+        Name:        prometheus-stack-app-kube-kube-apiserver-burnrate.rules
+        Namespace:   monitoring
+        Status:      SyncFailed
+        Sync Phase:  Sync
+        Version:     v1
+        Group:       monitoring.coreos.com
+        Kind:        PrometheusRule
+        Message:     The Kubernetes API could not find monitoring.coreos.com/PrometheusRule for requested resource monitoring/prometheus-stack-app-kube-kube-prometheus-node-recording.rules. Make sure the "PrometheusRule" CRD is installed on the destination cluster.
+        Name:        prometheus-stack-app-kube-kube-prometheus-node-recording.rules
+        Namespace:   monitoring
+        Status:      SyncFailed
+        Sync Phase:  Sync
+        Version:     v1
+        Group:       monitoring.coreos.com
+        Kind:        PrometheusRule
+        Message:     The Kubernetes API could not find monitoring.coreos.com/PrometheusRule for requested resource monitoring/prometheus-stack-app-kube-k8s.rules.container-resource. Make sure the "PrometheusRule" CRD is installed on the destination cluster.
+        Name:        prometheus-stack-app-kube-k8s.rules.container-resource
+        Namespace:   monitoring
+        Status:      SyncFailed
+        Sync Phase:  Sync
+        Version:     v1
+        Group:       monitoring.coreos.com
+        Kind:        PrometheusRule
+        Message:     The Kubernetes API could not find monitoring.coreos.com/PrometheusRule for requested resource monitoring/prometheus-stack-app-kube-k8s.rules.container-cpu-usage-seconds. Make sure the "PrometheusRule" CRD is installed on the destination cluster.
+        Name:        prometheus-stack-app-kube-k8s.rules.container-cpu-usage-seconds
+        Namespace:   monitoring
+        Status:      SyncFailed
+        Sync Phase:  Sync
+        Version:     v1
+        Group:       monitoring.coreos.com
+        Kind:        PrometheusRule
+        Message:     The Kubernetes API could not find monitoring.coreos.com/PrometheusRule for requested resource monitoring/prometheus-stack-app-kube-kubelet.rules. Make sure the "PrometheusRule" CRD is installed on the destination cluster.
+        Name:        prometheus-stack-app-kube-kubelet.rules
+        Namespace:   monitoring
+        Status:      SyncFailed
+        Sync Phase:  Sync
+        Version:     v1
+        Group:       monitoring.coreos.com
+        Kind:        PrometheusRule
+        Message:     The Kubernetes API could not find monitoring.coreos.com/PrometheusRule for requested resource monitoring/prometheus-stack-app-kube-prometheus. Make sure the "PrometheusRule" CRD is installed on the destination cluster.
+        Name:        prometheus-stack-app-kube-prometheus
+        Namespace:   monitoring
+        Status:      SyncFailed
+        Sync Phase:  Sync
+        Version:     v1
+        Group:       monitoring.coreos.com
+        Kind:        ServiceMonitor
+        Message:     The Kubernetes API could not find monitoring.coreos.com/ServiceMonitor for requested resource monitoring/prometheus-stack-app-kube-alertmanager. Make sure the "ServiceMonitor" CRD is installed on the destination cluster.
+        Name:        prometheus-stack-app-kube-alertmanager
+        Namespace:   monitoring
+        Status:      SyncFailed
+        Sync Phase:  Sync
+        Version:     v1
+        Group:       monitoring.coreos.com
+        Kind:        PrometheusRule
+        Message:     The Kubernetes API could not find monitoring.coreos.com/PrometheusRule for requested resource monitoring/prometheus-stack-app-kube-kubernetes-system-apiserver. Make sure the "PrometheusRule" CRD is installed on the destination cluster.
+        Name:        prometheus-stack-app-kube-kubernetes-system-apiserver
+        Namespace:   monitoring
+        Status:      SyncFailed
+        Sync Phase:  Sync
+        Version:     v1
+        Group:       monitoring.coreos.com
+        Kind:        PrometheusRule
+        Message:     The Kubernetes API could not find monitoring.coreos.com/PrometheusRule for requested resource monitoring/prometheus-stack-app-kube-node-network. Make sure the "PrometheusRule" CRD is installed on the destination cluster.
+        Name:        prometheus-stack-app-kube-node-network
+        Namespace:   monitoring
+        Status:      SyncFailed
+        Sync Phase:  Sync
+        Version:     v1
+        Group:       monitoring.coreos.com
+        Kind:        PrometheusRule
+        Message:     The Kubernetes API could not find monitoring.coreos.com/PrometheusRule for requested resource monitoring/prometheus-stack-app-kube-node-exporter. Make sure the "PrometheusRule" CRD is installed on the destination cluster.
+        Name:        prometheus-stack-app-kube-node-exporter
+        Namespace:   monitoring
+        Status:      SyncFailed
+        Sync Phase:  Sync
+        Version:     v1
+        Group:       monitoring.coreos.com
+        Kind:        PrometheusRule
+        Message:     The Kubernetes API could not find monitoring.coreos.com/PrometheusRule for requested resource monitoring/prometheus-stack-app-kube-kubernetes-system. Make sure the "PrometheusRule" CRD is installed on the destination cluster.
+        Name:        prometheus-stack-app-kube-kubernetes-system
+        Namespace:   monitoring
+        Status:      SyncFailed
+        Sync Phase:  Sync
+        Version:     v1
+        Group:       monitoring.coreos.com
+        Kind:        Alertmanager
+        Message:     The Kubernetes API could not find monitoring.coreos.com/Alertmanager for requested resource monitoring/prometheus-stack-app-kube-alertmanager. Make sure the "Alertmanager" CRD is installed on the destination cluster.
+        Name:        prometheus-stack-app-kube-alertmanager
+        Namespace:   monitoring
+        Status:      SyncFailed
+        Sync Phase:  Sync
+        Version:     v1
+        Group:       monitoring.coreos.com
+        Kind:        PrometheusRule
+        Message:     The Kubernetes API could not find monitoring.coreos.com/PrometheusRule for requested resource monitoring/prometheus-stack-app-kube-kube-apiserver-availability.rules. Make sure the "PrometheusRule" CRD is installed on the destination cluster.
+        Name:        prometheus-stack-app-kube-kube-apiserver-availability.rules
+        Namespace:   monitoring
+        Status:      SyncFailed
+        Sync Phase:  Sync
+        Version:     v1
+        Group:       monitoring.coreos.com
+        Kind:        PrometheusRule
+        Message:     The Kubernetes API could not find monitoring.coreos.com/PrometheusRule for requested resource monitoring/prometheus-stack-app-kube-k8s.rules.container-memory-cache. Make sure the "PrometheusRule" CRD is installed on the destination cluster.
+        Name:        prometheus-stack-app-kube-k8s.rules.container-memory-cache
+        Namespace:   monitoring
+        Status:      SyncFailed
+        Sync Phase:  Sync
+        Version:     v1
+        Group:       monitoring.coreos.com
+        Kind:        ServiceMonitor
+        Message:     The Kubernetes API could not find monitoring.coreos.com/ServiceMonitor for requested resource monitoring/prometheus-stack-app-grafana. Make sure the "ServiceMonitor" CRD is installed on the destination cluster.
+        Name:        prometheus-stack-app-grafana
+        Namespace:   monitoring
+        Status:      SyncFailed
+        Sync Phase:  Sync
+        Version:     v1
+        Group:       monitoring.coreos.com
+        Kind:        ServiceMonitor
+        Message:     The Kubernetes API could not find monitoring.coreos.com/ServiceMonitor for requested resource monitoring/prometheus-stack-app-kube-kubelet. Make sure the "ServiceMonitor" CRD is installed on the destination cluster.
+        Name:        prometheus-stack-app-kube-kubelet
+        Namespace:   monitoring
+        Status:      SyncFailed
+        Sync Phase:  Sync
+        Version:     v1
+        Group:       monitoring.coreos.com
+        Kind:        PrometheusRule
+        Message:     The Kubernetes API could not find monitoring.coreos.com/PrometheusRule for requested resource monitoring/prometheus-stack-app-kube-kubernetes-apps. Make sure the "PrometheusRule" CRD is installed on the destination cluster.
+        Name:        prometheus-stack-app-kube-kubernetes-apps
+        Namespace:   monitoring
+        Status:      SyncFailed
+        Sync Phase:  Sync
+        Version:     v1
+        Group:       monitoring.coreos.com
+        Kind:        PrometheusRule
+        Message:     The Kubernetes API could not find monitoring.coreos.com/PrometheusRule for requested resource monitoring/prometheus-stack-app-kube-k8s.rules.pod-owner. Make sure the "PrometheusRule" CRD is installed on the destination cluster.
+        Name:        prometheus-stack-app-kube-k8s.rules.pod-owner
+        Namespace:   monitoring
+        Status:      SyncFailed
+        Sync Phase:  Sync
+        Version:     v1
+      Revision:      77.1.0
+      Source:
+        Chart:  kube-prometheus-stack
+        Helm:
+          Values:  crds:
+  enabled: false
+  upgradeJob:
+    enabled: false
+
+grafana:
+  enabled: true
+  image:
+    tag: "11.6.1-security-01"
+  grafana.ini:
+    server:
+      root_url: https://grafana.local
+  persistence:
+    enabled: true
+    type: pvc
+    storageClassName: local-path
+    accessModes:
+      - ReadWriteOnce
+    size: 5Gi
+    skipUpgrade: true
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      kubernetes.io/ingress.class: nginx
+    hosts:
+      - grafana.local
+    path: /
+    pathType: Prefix
+    tls:
+      - hosts:
+          - grafana.local
+        secretName: grafana-tls
+
+prometheus:
+  enabled: true
+
+  prometheusSpec:
+    scrapeInterval: 1m
+    enableAdminAPI: true
+    enableRemoteWriteReceiver: true
+    retention: 30d
+    resources:
+      requests:
+        memory: 600Mi
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: local-path
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 10Gi
+
+    additionalScrapeConfigs: |
+      - job_name: 'argocd'
+        scrape_interval: 1m
+        metrics_path: /metrics
+        scheme: http
+        static_configs:
+          - targets: ['argocd-metrics.argocd.svc:8083']
+
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      kubernetes.io/ingress.class: nginx
+    hosts:
+      - prometheus.local
+    path: /
+    pathType: Prefix
+    tls:
+      - hosts:
+          - prometheus.local
+        secretName: prometheus-tls
+
+alertmanager:
+  enabled: true
+  alertmanagerSpec:
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: local-path
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 1Gi
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      kubernetes.io/ingress.class: nginx
+    hosts:
+      - alertmanager.local
+    path: /
+    pathType: Prefix
+    tls:
+      - hosts:
+          - alertmanager.local
+        secretName: alertmanager-tls
+
+prometheusOperator:
+  enabled: true
+  tls:
+    enabled: false
+  admissionWebhooks:
+    enabled: false
+    patch:
+      enabled: false
+    certManager:
+      enabled: false
+    failurePolicy: Ignore
+
+nodeExporter:
+  enabled: false
+
+kubeControllerManager:
+  enabled: false
+kubeProxy:
+  enabled: true
+  service:
+    selector:
+      component: kube-proxy
+  serviceMonitor:
+    enabled: true
+kubeScheduler:
+  enabled: false
+defaultRules:
+  create: true
+
+        Repo URL:          https://prometheus-community.github.io/helm-charts
+        Target Revision:   77.1.0
+  Reconciled At:           2025-08-29T17:26:29Z
+  Resource Health Source:  appTree
+  Resources:
+    Kind:       ConfigMap
+    Name:       prometheus-stack-app-grafana
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Kind:       ConfigMap
+    Name:       prometheus-stack-app-grafana-config-dashboards
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Kind:       ConfigMap
+    Name:       prometheus-stack-app-kube-alertmanager-overview
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Kind:       ConfigMap
+    Name:       prometheus-stack-app-kube-apiserver
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Kind:       ConfigMap
+    Name:       prometheus-stack-app-kube-cluster-total
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Kind:       ConfigMap
+    Name:       prometheus-stack-app-kube-etcd
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Kind:       ConfigMap
+    Name:       prometheus-stack-app-kube-grafana-datasource
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Kind:       ConfigMap
+    Name:       prometheus-stack-app-kube-grafana-overview
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Kind:       ConfigMap
+    Name:       prometheus-stack-app-kube-k8s-coredns
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Kind:       ConfigMap
+    Name:       prometheus-stack-app-kube-k8s-resources-cluster
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Kind:       ConfigMap
+    Name:       prometheus-stack-app-kube-k8s-resources-multicluster
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Kind:       ConfigMap
+    Name:       prometheus-stack-app-kube-k8s-resources-namespace
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Kind:       ConfigMap
+    Name:       prometheus-stack-app-kube-k8s-resources-node
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Kind:       ConfigMap
+    Name:       prometheus-stack-app-kube-k8s-resources-pod
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Kind:       ConfigMap
+    Name:       prometheus-stack-app-kube-k8s-resources-workload
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Kind:       ConfigMap
+    Name:       prometheus-stack-app-kube-k8s-resources-workloads-namespace
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Kind:       ConfigMap
+    Name:       prometheus-stack-app-kube-kubelet
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Kind:       ConfigMap
+    Name:       prometheus-stack-app-kube-namespace-by-pod
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Kind:       ConfigMap
+    Name:       prometheus-stack-app-kube-namespace-by-workload
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Kind:       ConfigMap
+    Name:       prometheus-stack-app-kube-persistentvolumesusage
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Kind:       ConfigMap
+    Name:       prometheus-stack-app-kube-pod-total
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Kind:       ConfigMap
+    Name:       prometheus-stack-app-kube-prometheus
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Kind:       ConfigMap
+    Name:       prometheus-stack-app-kube-proxy
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Kind:       ConfigMap
+    Name:       prometheus-stack-app-kube-workload-total
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Kind:       PersistentVolumeClaim
+    Name:       prometheus-stack-app-grafana
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Kind:       Secret
+    Name:       alertmanager-prometheus-stack-app-kube-alertmanager
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Kind:       Secret
+    Name:       prometheus-stack-app-grafana
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Kind:       Secret
+    Name:       prometheus-stack-app-kube-prometheus-scrape-confg
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Kind:       Service
+    Name:       prometheus-stack-app-kube-coredns
+    Namespace:  kube-system
+    Status:     OutOfSync
+    Version:    v1
+    Kind:       Service
+    Name:       prometheus-stack-app-kube-kube-etcd
+    Namespace:  kube-system
+    Status:     OutOfSync
+    Version:    v1
+    Kind:       Service
+    Name:       prometheus-stack-app-kube-kube-proxy
+    Namespace:  kube-system
+    Status:     OutOfSync
+    Version:    v1
+    Kind:       Service
+    Name:       prometheus-stack-app-grafana
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Kind:       Service
+    Name:       prometheus-stack-app-kube-alertmanager
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Kind:       Service
+    Name:       prometheus-stack-app-kube-operator
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Kind:       Service
+    Name:       prometheus-stack-app-kube-prometheus
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Kind:       Service
+    Name:       prometheus-stack-app-kube-state-metrics
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Kind:       ServiceAccount
+    Name:       prometheus-stack-app-grafana
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Kind:       ServiceAccount
+    Name:       prometheus-stack-app-kube-alertmanager
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Kind:       ServiceAccount
+    Name:       prometheus-stack-app-kube-operator
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Kind:       ServiceAccount
+    Name:       prometheus-stack-app-kube-prometheus
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Kind:       ServiceAccount
+    Name:       prometheus-stack-app-kube-state-metrics
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Group:      apps
+    Kind:       Deployment
+    Name:       prometheus-stack-app-grafana
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Group:      apps
+    Kind:       Deployment
+    Name:       prometheus-stack-app-kube-operator
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Group:      apps
+    Kind:       Deployment
+    Name:       prometheus-stack-app-kube-state-metrics
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Group:      monitoring.coreos.com
+    Kind:       Alertmanager
+    Name:       prometheus-stack-app-kube-alertmanager
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Group:      monitoring.coreos.com
+    Kind:       Prometheus
+    Name:       prometheus-stack-app-kube-prometheus
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Group:      monitoring.coreos.com
+    Kind:       PrometheusRule
+    Name:       prometheus-stack-app-kube-alertmanager.rules
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Group:      monitoring.coreos.com
+    Kind:       PrometheusRule
+    Name:       prometheus-stack-app-kube-config-reloaders
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Group:      monitoring.coreos.com
+    Kind:       PrometheusRule
+    Name:       prometheus-stack-app-kube-etcd
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Group:      monitoring.coreos.com
+    Kind:       PrometheusRule
+    Name:       prometheus-stack-app-kube-general.rules
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Group:      monitoring.coreos.com
+    Kind:       PrometheusRule
+    Name:       prometheus-stack-app-kube-k8s.rules.container-cpu-usage-seconds
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Group:      monitoring.coreos.com
+    Kind:       PrometheusRule
+    Name:       prometheus-stack-app-kube-k8s.rules.container-memory-cache
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Group:      monitoring.coreos.com
+    Kind:       PrometheusRule
+    Name:       prometheus-stack-app-kube-k8s.rules.container-memory-rss
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Group:      monitoring.coreos.com
+    Kind:       PrometheusRule
+    Name:       prometheus-stack-app-kube-k8s.rules.container-memory-swap
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Group:      monitoring.coreos.com
+    Kind:       PrometheusRule
+    Name:       prometheus-stack-app-kube-k8s.rules.container-memory-working-se
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Group:      monitoring.coreos.com
+    Kind:       PrometheusRule
+    Name:       prometheus-stack-app-kube-k8s.rules.container-resource
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Group:      monitoring.coreos.com
+    Kind:       PrometheusRule
+    Name:       prometheus-stack-app-kube-k8s.rules.pod-owner
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Group:      monitoring.coreos.com
+    Kind:       PrometheusRule
+    Name:       prometheus-stack-app-kube-kube-apiserver-availability.rules
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Group:      monitoring.coreos.com
+    Kind:       PrometheusRule
+    Name:       prometheus-stack-app-kube-kube-apiserver-burnrate.rules
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Group:      monitoring.coreos.com
+    Kind:       PrometheusRule
+    Name:       prometheus-stack-app-kube-kube-apiserver-histogram.rules
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Group:      monitoring.coreos.com
+    Kind:       PrometheusRule
+    Name:       prometheus-stack-app-kube-kube-apiserver-slos
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Group:      monitoring.coreos.com
+    Kind:       PrometheusRule
+    Name:       prometheus-stack-app-kube-kube-prometheus-general.rules
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Group:      monitoring.coreos.com
+    Kind:       PrometheusRule
+    Name:       prometheus-stack-app-kube-kube-prometheus-node-recording.rules
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Group:      monitoring.coreos.com
+    Kind:       PrometheusRule
+    Name:       prometheus-stack-app-kube-kube-state-metrics
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Group:      monitoring.coreos.com
+    Kind:       PrometheusRule
+    Name:       prometheus-stack-app-kube-kubelet.rules
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Group:      monitoring.coreos.com
+    Kind:       PrometheusRule
+    Name:       prometheus-stack-app-kube-kubernetes-apps
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Group:      monitoring.coreos.com
+    Kind:       PrometheusRule
+    Name:       prometheus-stack-app-kube-kubernetes-resources
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Group:      monitoring.coreos.com
+    Kind:       PrometheusRule
+    Name:       prometheus-stack-app-kube-kubernetes-storage
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Group:      monitoring.coreos.com
+    Kind:       PrometheusRule
+    Name:       prometheus-stack-app-kube-kubernetes-system
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Group:      monitoring.coreos.com
+    Kind:       PrometheusRule
+    Name:       prometheus-stack-app-kube-kubernetes-system-apiserver
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Group:      monitoring.coreos.com
+    Kind:       PrometheusRule
+    Name:       prometheus-stack-app-kube-kubernetes-system-kube-proxy
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Group:      monitoring.coreos.com
+    Kind:       PrometheusRule
+    Name:       prometheus-stack-app-kube-kubernetes-system-kubelet
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Group:      monitoring.coreos.com
+    Kind:       PrometheusRule
+    Name:       prometheus-stack-app-kube-node-exporter
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Group:      monitoring.coreos.com
+    Kind:       PrometheusRule
+    Name:       prometheus-stack-app-kube-node-exporter.rules
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Group:      monitoring.coreos.com
+    Kind:       PrometheusRule
+    Name:       prometheus-stack-app-kube-node-network
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Group:      monitoring.coreos.com
+    Kind:       PrometheusRule
+    Name:       prometheus-stack-app-kube-node.rules
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Group:      monitoring.coreos.com
+    Kind:       PrometheusRule
+    Name:       prometheus-stack-app-kube-prometheus
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Group:      monitoring.coreos.com
+    Kind:       PrometheusRule
+    Name:       prometheus-stack-app-kube-prometheus-operator
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Group:      monitoring.coreos.com
+    Kind:       ServiceMonitor
+    Name:       prometheus-stack-app-grafana
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Group:      monitoring.coreos.com
+    Kind:       ServiceMonitor
+    Name:       prometheus-stack-app-kube-alertmanager
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Group:      monitoring.coreos.com
+    Kind:       ServiceMonitor
+    Name:       prometheus-stack-app-kube-apiserver
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Group:      monitoring.coreos.com
+    Kind:       ServiceMonitor
+    Name:       prometheus-stack-app-kube-coredns
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Group:      monitoring.coreos.com
+    Kind:       ServiceMonitor
+    Name:       prometheus-stack-app-kube-kube-etcd
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Group:      monitoring.coreos.com
+    Kind:       ServiceMonitor
+    Name:       prometheus-stack-app-kube-kube-proxy
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Group:      monitoring.coreos.com
+    Kind:       ServiceMonitor
+    Name:       prometheus-stack-app-kube-kubelet
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Group:      monitoring.coreos.com
+    Kind:       ServiceMonitor
+    Name:       prometheus-stack-app-kube-operator
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Group:      monitoring.coreos.com
+    Kind:       ServiceMonitor
+    Name:       prometheus-stack-app-kube-prometheus
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Group:      monitoring.coreos.com
+    Kind:       ServiceMonitor
+    Name:       prometheus-stack-app-kube-state-metrics
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Group:      networking.k8s.io
+    Kind:       Ingress
+    Name:       prometheus-stack-app-grafana
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Group:      networking.k8s.io
+    Kind:       Ingress
+    Name:       prometheus-stack-app-kube-alertmanager
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Group:      networking.k8s.io
+    Kind:       Ingress
+    Name:       prometheus-stack-app-kube-prometheus
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Group:      rbac.authorization.k8s.io
+    Kind:       ClusterRole
+    Name:       prometheus-stack-app-grafana-clusterrole
+    Status:     OutOfSync
+    Version:    v1
+    Group:      rbac.authorization.k8s.io
+    Kind:       ClusterRole
+    Name:       prometheus-stack-app-kube-operator
+    Status:     OutOfSync
+    Version:    v1
+    Group:      rbac.authorization.k8s.io
+    Kind:       ClusterRole
+    Name:       prometheus-stack-app-kube-prometheus
+    Status:     OutOfSync
+    Version:    v1
+    Group:      rbac.authorization.k8s.io
+    Kind:       ClusterRole
+    Name:       prometheus-stack-app-kube-state-metrics
+    Status:     OutOfSync
+    Version:    v1
+    Group:      rbac.authorization.k8s.io
+    Kind:       ClusterRoleBinding
+    Name:       prometheus-stack-app-grafana-clusterrolebinding
+    Status:     OutOfSync
+    Version:    v1
+    Group:      rbac.authorization.k8s.io
+    Kind:       ClusterRoleBinding
+    Name:       prometheus-stack-app-kube-operator
+    Status:     OutOfSync
+    Version:    v1
+    Group:      rbac.authorization.k8s.io
+    Kind:       ClusterRoleBinding
+    Name:       prometheus-stack-app-kube-prometheus
+    Status:     OutOfSync
+    Version:    v1
+    Group:      rbac.authorization.k8s.io
+    Kind:       ClusterRoleBinding
+    Name:       prometheus-stack-app-kube-state-metrics
+    Status:     OutOfSync
+    Version:    v1
+    Group:      rbac.authorization.k8s.io
+    Kind:       Role
+    Name:       prometheus-stack-app-grafana
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+    Group:      rbac.authorization.k8s.io
+    Kind:       RoleBinding
+    Name:       prometheus-stack-app-grafana
+    Namespace:  monitoring
+    Status:     OutOfSync
+    Version:    v1
+  Source Hydrator:
+  Source Type:  Helm
+  Summary:
+  Sync:
+    Compared To:
+      Destination:
+        Namespace:  monitoring
+        Server:     https://kubernetes.default.svc
+      Source:
+        Chart:  kube-prometheus-stack
+        Helm:
+          Values:  crds:
+  enabled: false
+  upgradeJob:
+    enabled: false
+
+grafana:
+  enabled: true
+  image:
+    tag: "11.6.1-security-01"
+  grafana.ini:
+    server:
+      root_url: https://grafana.local
+  persistence:
+    enabled: true
+    type: pvc
+    storageClassName: local-path
+    accessModes:
+      - ReadWriteOnce
+    size: 5Gi
+    skipUpgrade: true
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      kubernetes.io/ingress.class: nginx
+    hosts:
+      - grafana.local
+    path: /
+    pathType: Prefix
+    tls:
+      - hosts:
+          - grafana.local
+        secretName: grafana-tls
+
+prometheus:
+  enabled: true
+
+  prometheusSpec:
+    scrapeInterval: 1m
+    enableAdminAPI: true
+    enableRemoteWriteReceiver: true
+    retention: 30d
+    resources:
+      requests:
+        memory: 600Mi
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: local-path
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 10Gi
+
+    additionalScrapeConfigs: |
+      - job_name: 'argocd'
+        scrape_interval: 1m
+        metrics_path: /metrics
+        scheme: http
+        static_configs:
+          - targets: ['argocd-metrics.argocd.svc:8083']
+
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      kubernetes.io/ingress.class: nginx
+    hosts:
+      - prometheus.local
+    path: /
+    pathType: Prefix
+    tls:
+      - hosts:
+          - prometheus.local
+        secretName: prometheus-tls
+
+alertmanager:
+  enabled: true
+  alertmanagerSpec:
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: local-path
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 1Gi
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      kubernetes.io/ingress.class: nginx
+    hosts:
+      - alertmanager.local
+    path: /
+    pathType: Prefix
+    tls:
+      - hosts:
+          - alertmanager.local
+        secretName: alertmanager-tls
+
+prometheusOperator:
+  enabled: true
+  tls:
+    enabled: false
+  admissionWebhooks:
+    enabled: false
+    patch:
+      enabled: false
+    certManager:
+      enabled: false
+    failurePolicy: Ignore
+
+nodeExporter:
+  enabled: false
+
+kubeControllerManager:
+  enabled: false
+kubeProxy:
+  enabled: true
+  service:
+    selector:
+      component: kube-proxy
+  serviceMonitor:
+    enabled: true
+kubeScheduler:
+  enabled: false
+defaultRules:
+  create: true
+
+        Repo URL:         https://prometheus-community.github.io/helm-charts
+        Target Revision:  77.1.0
+    Revision:             77.1.0
+    Status:               OutOfSync
+Events:
+  Type     Reason              Age   From                           Message
+  ----     ------              ----  ----                           -------
+  Normal   OperationStarted    46m   argocd-application-controller  Initiated automated sync to '70.4.0'
+  Normal   ResourceUpdated     46m   argocd-application-controller  Updated sync status:  -> OutOfSync
+  Normal   ResourceUpdated     46m   argocd-application-controller  Updated health status:  -> Missing
+  Warning  OperationCompleted  41m   argocd-application-controller  Sync operation to 70.4.0 failed: one or more synchronization tasks are not valid (retried 5 times).
+  Normal   OperationStarted    30m   argocd-server                  admin initiated sync to 70.4.0 (70.4.0)
+  Warning  OperationCompleted  30m   argocd-application-controller  Sync operation to 70.4.0 failed: one or more synchronization tasks are not valid
+  Normal   OperationStarted    28m   argocd-application-controller  Initiated automated sync to '77.1.0'
+  Warning  OperationCompleted  22m   argocd-application-controller  Sync operation to 77.1.0 failed: one or more synchronization tasks are not valid (retried 5 times).
+  Normal   OperationStarted    97s   argocd-server                  admin initiated sync to 77.1.0 (77.1.0)
+  Warning  OperationCompleted  96s   argocd-application-controller  Sync operation to 77.1.0 failed: one or more synchronization tasks are not valid
