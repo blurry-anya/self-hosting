@@ -2,6 +2,16 @@
 
 export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
 
+if traefik got installed:
+
+kubectl delete deployment traefik -n kube-system
+kubectl delete service traefik -n kube-system
+kubectl delete configmap traefik -n kube-system
+kubectl delete clusterrolebinding traefik
+kubectl delete clusterrole traefik
+
+otherwise this should be done before installation: curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--disable traefik" sh -
+
 helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 helm repo update
 helm install ingress-nginx ingress-nginx/ingress-nginx \
