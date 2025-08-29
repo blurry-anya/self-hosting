@@ -9,3 +9,4 @@ helm install argocd argo/argo-cd --namespace argocd --create-namespace --kubecon
     
 kubectl apply -f apps/infra/argo-app.yaml 
 
+kubectl apply -f kustomizations/argocd/base/argo-projects.yaml -> no idea how this should be applied otherwise (picked up by argocd)
