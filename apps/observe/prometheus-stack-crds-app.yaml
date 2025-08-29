@@ -12,7 +12,7 @@ spec:
     server: https://kubernetes.default.svc
   source:
     repoURL: 'https://github.com/blurry-anya/self-hosting'
-    path: kustomizations/prometheus-stack-crds
+    path: manifests/prometheus-stack-crds
     targetRevision: main
     directory:
       recurse: true
