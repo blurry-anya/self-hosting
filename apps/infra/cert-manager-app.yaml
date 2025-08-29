@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: 'https://github.com/blurry-anya/self-hosting'
     targetRevision: main
-    path: kustomizations/cert-manager
+    path: manifests/cert-manager
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: cert-manager
