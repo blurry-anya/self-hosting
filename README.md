@@ -31,3 +31,7 @@ kubectl apply -k kustomizations/argocd/
 kubectl apply -f apps/infra/argo-app.yaml 
 
 kubectl apply -f apps/infra-aoa.yaml 
+
+> kubectl -n argocd patch application argocd-self --type merge -p '{"status": {"operationState": {"operation": {"sync": {}}}}}'
+
+> kubectl port-forward svc/argocd-server -n argocd 8080:80
