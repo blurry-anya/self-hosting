@@ -14,6 +14,8 @@ spec:
     repoURL: 'https://github.com/blurry-anya/self-hosting'
     path: kustomizations/prometheus-stack-crds
     targetRevision: main
+    directory:
+      recurse: true
   syncPolicy:
     automated:
       selfHeal: true
