@@ -47,3 +47,5 @@ kubectl apply -f apps/infra-aoa.yaml
 > kubectl port-forward svc/argocd-server -n argocd 8080:80
 
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
+
+helm install prometheus prometheus-community/kube-prometheus-stack -n monitoring -f charts/prometheus-stack/values.yaml --create-namespace --set installCRDs=true

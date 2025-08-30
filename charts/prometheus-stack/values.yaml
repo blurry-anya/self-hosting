@@ -1,0 +1,129 @@
+crds:
+  enabled: false
+  upgradeJob:
+    enabled: false
+
+grafana:
+  enabled: true
+  image:
+    tag: "11.6.1-security-01"
+  grafana.ini:
+    server:
+      root_url: https://grafana.local
+  persistence:
+    enabled: true
+    type: pvc
+    storageClassName: local-path
+    accessModes:
+      - ReadWriteOnce
+    size: 5Gi
+    skipUpgrade: true
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      kubernetes.io/ingress.class: nginx
+    hosts:
+      - grafana.local
+    path: /
+    pathType: Prefix
+    tls:
+      - hosts:
+          - grafana.local
+        secretName: grafana-tls
+
+prometheus:
+  enabled: true
+  prometheusSpec:
+    scrapeInterval: 1m
+    enableAdminAPI: true
+    enableRemoteWriteReceiver: true
+    retention: 30d
+    resources:
+      requests:
+        memory: 600Mi
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: local-path
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 10Gi
+    additionalScrapeConfigs: |
+      - job_name: 'argocd'
+        scrape_interval: 1m
+        metrics_path: /metrics
+        scheme: http
+        static_configs:
+          - targets: ['argocd-metrics.argocd.svc:8083']
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      kubernetes.io/ingress.class: nginx
+    hosts:
+      - prometheus.local
+    path: /
+    pathType: Prefix
+    tls:
+      - hosts:
+          - prometheus.local
+        secretName: prometheus-tls
+
+alertmanager:
+  enabled: true
+  alertmanagerSpec:
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: local-path
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 1Gi
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      kubernetes.io/ingress.class: nginx
+    hosts:
+      - alertmanager.local
+    path: /
+    pathType: Prefix
+    tls:
+      - hosts:
+          - alertmanager.local
+        secretName: alertmanager-tls
+
+prometheusOperator:
+  enabled: true
+  tls:
+    enabled: false
+  admissionWebhooks:
+    enabled: false
+    patch:
+      enabled: false
+    certManager:
+      enabled: false
+    failurePolicy: Ignore
+
+nodeExporter:
+  enabled: false
+
+kubeControllerManager:
+  enabled: false
+
+kubeProxy:
+  enabled: true
+  service:
+    selector:
+      component: kube-proxy
+  serviceMonitor:
+    enabled: true
+
+kubeScheduler:
+  enabled: false
+
+defaultRules:
+  create: true
