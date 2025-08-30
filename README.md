@@ -49,3 +49,13 @@ kubectl apply -f apps/infra-aoa.yaml
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
 
 helm install prometheus prometheus-community/kube-prometheus-stack -n monitoring -f charts/prometheus-stack/values.yaml --create-namespace --set installCRDs=true
+
+Delete the Helm release but leave resources intact:
+helm uninstall prometheus -n monitoring --keep-history
+(⚠️ This leaves CRDs & resources, but Helm no longer manages them).
+
+helm uninstall prometheus -n monitoring --keep-history=false --no-hooks
+
+kubectl -n monitoring get job prometheus-stack-kube-prom-admission-create -o yaml | grep finalizers -A2
+kubectl -n monitoring patch job prometheus-stack-kube-prom-admission-create -p '{"metadata":{"finalizers":[]}}' --type=merge
+kubectl -n monitoring delete job prometheus-stack-kube-prom-admission-crea
