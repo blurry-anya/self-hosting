@@ -64,7 +64,8 @@ prometheus:
       kubernetes.io/ingress.class: nginx
     hosts:
       - prometheus.local
-    path: /
+    paths:
+      - /
     pathType: Prefix
     tls:
       - hosts:
@@ -89,7 +90,8 @@ alertmanager:
       kubernetes.io/ingress.class: nginx
     hosts:
       - alertmanager.local
-    path: /
+    paths:
+      - /
     pathType: Prefix
     tls:
       - hosts:

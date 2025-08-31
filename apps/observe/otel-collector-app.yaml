@@ -1,0 +1,193 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: otel-collector-app
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: observability
+  destination:
+    namespace: monitoring
+    server: https://kubernetes.default.svc
+  source:
+    repoURL: https://open-telemetry.github.io/opentelemetry-helm-charts
+    chart: opentelemetry-collector
+    targetRevision: 0.126.0
+    helm:
+      values: |
+        mode: deployment
+
+        image:
+          repository: otel/opentelemetry-collector-contrib
+          # repository: "ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-k8s"
+
+        # command:
+        #   name: "otelcol-k8s"
+
+        additionalLabels:
+          release: prometheus-stack-app
+
+        presets:
+          kubernetesAttributes:
+            enabled: true
+          logsCollection:
+            enabled: true
+            includeCollectorLogs: true
+
+        livenessProbe:
+          httpGet:
+            port: 13133
+            path: /healthz
+
+        readinessProbe:
+          httpGet:
+            port: 13133
+            path: /healthz
+
+        config:
+          extensions:
+            health_check:
+              endpoint: ${env:MY_POD_IP}:13133
+              path: /healthz        
+          receivers:
+            jaeger: null
+            zipkin: null
+            otlp:
+              protocols:
+                http:
+                  endpoint: 0.0.0.0:4318
+                grpc:
+                  endpoint: 0.0.0.0:4317
+          exporters:
+            debug:
+              verbosity: detailed
+            loki:
+              endpoint: http://loki.monitoring.svc.cluster.local:3100/loki/api/v1/push
+              default_labels_enabled:
+                service: true
+                pod: true
+                namespace: true
+
+            prometheus:
+              endpoint: "0.0.0.0:8889"
+
+            prometheusremotewrite/org1:
+              endpoint: http://mimir-nginx.monitoring.svc.cluster.local:80/api/v1/push
+              headers:
+                X-Scope-OrgID: org1
+
+          connectors:
+            routing/metrics:
+              default_pipelines: [metrics/default]
+              error_mode: ignore
+              table:
+                - context: metric
+                  condition: 'resource.attributes["service.name"] == "org1"'
+                  pipelines: [metrics/org1]
+
+          service:
+            extensions: [health_check]
+            pipelines:
+              logs:
+                exporters:
+                  - debug
+                  - loki
+                processors:
+                  - memory_limiter
+                  - k8sattributes
+                  - batch
+                receivers:
+                  - otlp            
+              traces:
+                receivers:
+                  - otlp
+                processors:
+                  - memory_limiter
+                  - batch
+                # exporters:
+                #   - otlp/jaeger
+
+              metrics/in:
+                receivers: [otlp]
+                exporters: [routing/metrics]
+
+              metrics/default:
+                receivers: [routing/metrics]
+                processors: [memory_limiter, batch]
+                exporters: [debug, prometheus]
+                  
+              metrics/org1:
+                receivers: [routing/metrics]
+                processors: [memory_limiter, batch]
+                exporters: [debug, prometheusremotewrite/org1]
+
+        serviceMonitor:
+          # The service monitor by default scrapes the metrics port.
+          # The metrics port needs to be enabled as well.
+          enabled: true
+          metricsEndpoints:
+            - port: metrics
+              #path: /v1/metrics
+              interval: 15s
+
+        ports:
+          health:
+            enabled: true
+            containerPort: 13133
+            servicePort: 13133
+            protocol: TCP        
+          metrics:
+            # The metrics port is disabled by default. However you need to enable the port
+            # in order to use the ServiceMonitor (serviceMonitor.enabled) or PodMonitor (podMonitor.enabled).
+            enabled: true
+            containerPort: 8889
+            servicePort: 8889
+            protocol: TCP
+
+        ingress:
+          enabled: true
+          ingressClassName: nginx
+          # annotations:
+          #   nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+          #   kubernetes.io/ingress.class: nginx
+          #   nginx.ingress.kubernetes.io/auth-type: "basic"
+          #   nginx.ingress.kubernetes.io/auth-secret: "basic-auth"
+          #   nginx.ingress.kubernetes.io/auth-realm: "Authentication Required"
+          #   nginx.ingress.kubernetes.io/auth-secret-type: "auth-file"
+          hosts:
+            - host: telemetry.local
+              paths:
+              - path: /
+                pathType: Prefix
+                port: 4318
+              - path: /healthz
+                pathType: Prefix
+                port: 13133                
+          tls:
+            - hosts:
+                - telemetry.local
+              secretName: telemetry-tls
+
+        # extraVolumes:
+        #   - name: secrets-store-inline
+        #     csi:
+        #       driver: secrets-store.csi.k8s.io
+        #       readOnly: true
+        #       volumeAttributes:
+        #         secretProviderClass: kv-basic-auth
+
+        # extraVolumeMounts:
+        #   - name: secrets-store-inline
+        #     mountPath: "/mnt/secrets-store"
+        #     readOnly: true
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - ApplyOutOfSyncOnly=true
+      - Replace=true
+      - Prune=true

@@ -1,0 +1,246 @@
+metaMonitoring:
+  serviceMonitor:
+    enabled: true
+    labels:
+      release: kube-prometheus-stack
+mimir:
+  structuredConfig:
+    common:
+      storage:
+        backend: s3
+        s3:
+          endpoint: minio.minio.svc.cluster.local:9000
+          bucket_name: mimir
+          access_key: minioadmin
+          secret_key: minioadmin
+          insecure: true
+    alertmanager_storage:
+      backend: s3
+      s3:
+        endpoint: minio.minio.svc.cluster.local:9000
+        bucket_name: mimir-alertmanager
+        access_key: minioadmin
+        secret_key: minioadmin
+        insecure: true
+    blocks_storage:
+      backend: s3
+      s3:
+        endpoint: minio.minio.svc.cluster.local:9000
+        bucket_name: mimir-blocks
+        access_key: minioadmin
+        secret_key: minioadmin
+        insecure: true
+    ruler_storage:
+      backend: s3
+      s3:
+        endpoint: minio.minio.svc.cluster.local:9000
+        bucket_name: mimir-ruler
+        access_key: minioadmin
+        secret_key: minioadmin
+        insecure: true
+
+minio:
+  enabled: true
+  persistence:
+    enabled: true
+    size: 10Gi
+    storageClass: local-path
+  accessKey: minioadmin
+  secretKey: minioadmin
+  service:
+    type: ClusterIP
+  ingress:
+    enabled: true
+    hosts:
+      - minio.local
+    annotations:
+      kubernetes.io/ingress.class: nginx
+    tls:
+      - hosts:
+          - minio.local
+        secretName: minio-tls
+
+alertmanager:
+  persistentVolume:
+    enabled: true
+    storageClass: "local-path"
+    size: 10Gi
+  replicas: 2
+  # resources:
+  #   limits:
+  #     memory: 1.4Gi
+  #   requests:
+  #     cpu: 1
+  #     memory: 1Gi
+  statefulSet:
+    enabled: true
+
+compactor:
+  persistentVolume:
+    size: 20Gi
+    storageClass: "local-path"
+  # resources:
+  #   limits:
+  #     memory: 2.1Gi
+  #   requests:
+  #     cpu: 1
+  #     memory: 1.5Gi
+
+distributor:
+  replicas: 2
+  # resources:
+  #   limits:
+  #     memory: 5.7Gi
+  #   requests:
+  #     cpu: 2
+  #     memory: 4Gi
+
+ingester:
+  persistentVolume:
+    size: 50Gi
+    storageClass: "local-path"
+  replicas: 3
+  # resources:
+  #   limits:
+  #     memory: 12Gi
+  #   requests:
+  #     cpu: 3.5
+  #     memory: 8Gi
+  topologySpreadConstraints: {}
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchExpressions:
+              - key: target # support for enterprise.legacyLabels
+                operator: In
+                values:
+                  - ingester
+          topologyKey: "kubernetes.io/hostname"
+
+        - labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/component
+                operator: In
+                values:
+                  - ingester
+          topologyKey: "kubernetes.io/hostname"
+
+  zoneAwareReplication:
+    topologyKey: "kubernetes.io/hostname"
+
+admin-cache:
+  enabled: true
+  replicas: 1
+
+chunks-cache:
+  enabled: true
+  replicas: 1
+
+index-cache:
+  enabled: true
+  replicas: 1
+
+metadata-cache:
+  enabled: true
+  replicas: 1
+
+results-cache:
+  enabled: true
+  replicas: 1
+
+overrides_exporter:
+  replicas: 1
+  resources:
+    limits:
+      memory: 128Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+querier:
+  replicas: 1
+  # resources:
+  #   limits:
+  #     memory: 5.6Gi
+  #   requests:
+  #     cpu: 2
+  #     memory: 4Gi
+
+query_frontend:
+  replicas: 1
+  # resources:
+  #   limits:
+  #     memory: 2.8Gi
+  #   requests:
+  #     cpu: 2
+  #     memory: 2Gi
+
+ruler:
+  replicas: 1
+  # resources:
+  #   limits:
+  #     memory: 2.8Gi
+  #   requests:
+  #     cpu: 1
+  #     memory: 2Gi
+
+store_gateway:
+  persistentVolume:
+    size: 10Gi
+  replicas: 1
+  # resources:
+  #   limits:
+  #     memory: 2.1Gi
+  #   requests:
+  #     cpu: 1
+  #     memory: 1.5Gi
+  topologySpreadConstraints: {}
+  # affinity:
+  #   podAntiAffinity:
+  #     requiredDuringSchedulingIgnoredDuringExecution:
+  #       - labelSelector:
+  #           matchExpressions:
+  #             - key: target # support for enterprise.legacyLabels
+  #               operator: In
+  #               values:
+  #                 - store-gateway
+  #         topologyKey: "kubernetes.io/hostname"
+
+  #       - labelSelector:
+  #           matchExpressions:
+  #             - key: app.kubernetes.io/component
+  #               operator: In
+  #               values:
+  #                 - store-gateway
+  #         topologyKey: "kubernetes.io/hostname"
+  # zoneAwareReplication:
+  #   topologyKey: "kubernetes.io/hostname"
+
+nginx:
+  replicas: 1
+  resources:
+    limits:
+      memory: 731Mi
+    requests:
+      cpu: 1
+      memory: 512Mi
+
+# Grafana Enterprise Metrics feature related
+admin_api:
+  replicas: 1
+  resources:
+    limits:
+      memory: 128Mi
+    requests:
+      cpu: 100m
+      memory: 64Mi
+
+gateway:
+  replicas: 1
+  resources:
+    limits:
+      memory: 731Mi
+    requests:
+      cpu: 1
+      memory: 512Mi
