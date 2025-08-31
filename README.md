@@ -1,16 +1,20 @@
 # self-hosting
 
+sudo systemctl stop k3s
+sudo /usr/local/bin/k3s-uninstall.sh
+sudo rm -rf /etc/rancher/k3s /var/lib/rancher/k3s /var/lib/kubelet /var/lib/etcd /var/lib/cni
+sudo rm -rf /etc/cni /opt/cni /run/k3s /run/flannel /var/run/calico
+
+curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--disable traefik" sh -
+
 export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
 
 if traefik got installed:
-
 kubectl delete deployment traefik -n kube-system
 kubectl delete service traefik -n kube-system
 kubectl delete configmap traefik -n kube-system
 kubectl delete clusterrolebinding traefik
 kubectl delete clusterrole traefik
-
-otherwise this should be done before installation: curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--disable traefik" sh -
 
 helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 helm repo update
@@ -47,6 +51,8 @@ kubectl apply -f apps/infra-aoa.yaml
 > kubectl port-forward svc/argocd-server -n argocd 8080:80
 
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
+
+-----
 
 helm install prometheus prometheus-community/kube-prometheus-stack -n monitoring -f charts/prometheus-stack/values.yaml --create-namespace --set installCRDs=true
 

@@ -1,0 +1,43 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: prometheus-crds-app
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: observability
+  destination:
+    namespace: monitoring 
+    server: https://kubernetes.default.svc
+  source:
+    repoURL: https://prometheus-community.github.io/helm-charts
+    targetRevision: 77.1.0
+    chart: kube-prometheus-stack
+    helm:
+      releaseName: prometheus-crds
+      values: |
+        crds:
+          enabled: true
+        grafana:
+          enabled: false
+        prometheus:
+          enabled: false
+        alertmanager:
+          enabled: false
+        prometheusOperator:
+          enabled: false
+        nodeExporter:
+          enabled: false
+        kubeProxy:
+          enabled: false
+        kubeControllerManager:
+          enabled: false
+        kubeScheduler:
+          enabled: false
+        defaultRules:
+          create: false
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
