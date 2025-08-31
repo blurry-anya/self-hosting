@@ -14,6 +14,7 @@ spec:
     repoURL: https://prometheus-community.github.io/helm-charts
     targetRevision: 77.1.0
     chart: kube-prometheus-stack
+    includeCRDs: true
     helm:
       releaseName: prometheus-crds
       values: |
