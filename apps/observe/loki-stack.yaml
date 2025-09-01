@@ -34,31 +34,31 @@ spec:
             enabled: true
 
         grafana:
-        enabled: true
-        grafana.ini:
-          server:
-            root_url: https://grafana.local
-        persistence:
           enabled: true
-          type: pvc
-          storageClassName: local-path
-          accessModes:
-            - ReadWriteOnce
-          size: 5Gi
-          skipUpgrade: true
-        ingress:
-          enabled: true
-          ingressClassName: nginx
-          annotations:
-            kubernetes.io/ingress.class: nginx
-          hosts:
-            - grafana.local
-          path: /
-          pathType: Prefix
-          tls:
-            - hosts:
-                - grafana.local
-              secretName: grafana-tls
+          grafana.ini:
+            server:
+              root_url: https://grafana.local
+          persistence:
+            enabled: true
+            type: pvc
+            storageClassName: local-path
+            accessModes:
+              - ReadWriteOnce
+            size: 5Gi
+            skipUpgrade: true
+          ingress:
+            enabled: true
+            ingressClassName: nginx
+            annotations:
+              kubernetes.io/ingress.class: nginx
+            hosts:
+              - grafana.local
+            path: /
+            pathType: Prefix
+            tls:
+              - hosts:
+                  - grafana.local
+                secretName: grafana-tls
 
   syncPolicy:
     automated:
