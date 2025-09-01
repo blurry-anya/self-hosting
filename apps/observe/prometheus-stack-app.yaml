@@ -1,33 +1,33 @@
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: prometheus-stack-app
-  namespace: argocd
-  annotations:
-    argocd.argoproj.io/sync-wave: "1"
-spec:
-  project: observability
-  destination:
-    namespace: monitoring
-    server: https://kubernetes.default.svc
-  sources:
-    - repoURL: https://prometheus-community.github.io/helm-charts
-      targetRevision: 77.1.0
-      chart: kube-prometheus-stack
-      helm:
-        releaseName: prometheus-stack
-        valuesFiles:
-          - $sourcerepo/charts/prometheus-stack/values.yaml
-    - repoURL: https://github.com/blurry-anya/self-hosting
-      targetRevision: main
-      ref: sourcerepo
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-    syncOptions:
-      - CreateNamespace=true
-      - ServerSideApply=true
-      - ApplyOutOfSyncOnly=true
-      - Replace=true
-      - Prune=true
+# apiVersion: argoproj.io/v1alpha1
+# kind: Application
+# metadata:
+#   name: prometheus-stack-app
+#   namespace: argocd
+#   annotations:
+#     argocd.argoproj.io/sync-wave: "1"
+# spec:
+#   project: observability
+#   destination:
+#     namespace: monitoring
+#     server: https://kubernetes.default.svc
+#   sources:
+#     - repoURL: https://prometheus-community.github.io/helm-charts
+#       targetRevision: 77.1.0
+#       chart: kube-prometheus-stack
+#       helm:
+#         releaseName: prometheus-stack
+#         valuesFiles:
+#           - $sourcerepo/charts/prometheus-stack/values.yaml
+#     - repoURL: https://github.com/blurry-anya/self-hosting
+#       targetRevision: main
+#       ref: sourcerepo
+#   syncPolicy:
+#     automated:
+#       prune: true
+#       selfHeal: true
+#     syncOptions:
+#       - CreateNamespace=true
+#       - ServerSideApply=true
+#       - ApplyOutOfSyncOnly=true
+#       - Replace=true
+#       - Prune=true

@@ -8,6 +8,7 @@ sudo rm -rf /etc/cni /opt/cni /run/k3s /run/flannel /var/run/calico
 curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--disable traefik" sh -
 
 export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+export KUBECONFIG=$HOME/.kube/config
 
 if traefik got installed:
 kubectl delete deployment traefik -n kube-system
